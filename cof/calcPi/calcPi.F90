@@ -3,24 +3,21 @@ program calcPi
 	implicit none
 	integer, parameter :: N = 1000
 
-	real, dimension(N) :: x,y
-	real :: rMin,rMax, piApprox
-	real, dimension(N) :: r
+	real, dimension(N) :: x,y, r
+	real :: piApprox
 	integer :: myID, Np, i, totIn
 	integer, codimension[*] :: locIn
-	rMin = -1.0
-	rMax = 1.0
 
 	myID = this_image()
 	Np = num_images()
 
+	!Create proc-dependent seed
 	call random_seed(put=(/myID/))
 
 	!Generate random numbers
-	call random_number(r)
-	x = rMin + (rMax-rMin)*r
-	call random_number(r)
-	y = rMin + (rMax-rMin)*r
+	call random_number(x)
+	call random_number(y)
+	
 
 	r = sqrt( x**2.0 + y**2.0 )
 	locIn = count( r <= 1 )
