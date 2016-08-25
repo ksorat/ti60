@@ -4,9 +4,10 @@ program calcPi
 	integer, parameter :: N = 1000
 
 	real, dimension(N) :: x,y
-	real :: rMin,rMax
+	real :: rMin,rMax, piApprox
 	real, dimension(N) :: r
-	integer :: myID, Np, i,locIn[*]
+	integer :: myID, Np, i, totIn
+	integer, codimension[*] :: locIn
 	rMin = -1.0
 	rMax = 1.0
 
@@ -23,10 +24,17 @@ program calcPi
 
 	r = sqrt( x**2.0 + y**2.0 )
 	locIn = count( r <= 1 )
+	sync all
+
 	if (myID == 1) then
-		do concurrent(i=1:Np)
-			write(*,*) locIn[i]
+		totIn = 0
+		do i=1,Np
+			totIn = totIn + locIn[i]
 		end do
+		piApprox = 4.0*totIn/(Np*N)
+		write(*,'(a,f)') 'Pi = ', piApprox
+		write(*,'(a,i)') 'Np = ', Np
+
 	endif
 
 end program calcPi
