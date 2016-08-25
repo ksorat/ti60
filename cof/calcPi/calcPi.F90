@@ -4,9 +4,9 @@ program calcPi
 	integer, parameter :: N = 1000
 
 	real, dimension(N) :: x,y
-	real :: myID, Np, rMin,rMax
+	real :: rMin,rMax
 	real, dimension(N) :: r
-	integer :: i,locIn[*]
+	integer :: myID, Np, i,locIn[*]
 	rMin = -1.0
 	rMax = 1.0
 
@@ -28,5 +28,7 @@ program calcPi
 			write(*,*) locIn[i]
 		end do
 	endif
+
+end program calcPi
 
 
