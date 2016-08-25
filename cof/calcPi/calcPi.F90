@@ -1,7 +1,7 @@
 program calcPi
 
 	implicit none
-	integer, parameter :: N = 1000
+	integer, parameter :: N = 1000000
 
 	real, dimension(N) :: x,y, r
 	real :: piApprox
@@ -31,6 +31,7 @@ program calcPi
 		piApprox = 4.0*totIn/(Np*N)
 		write(*,'(a,f)') 'Pi = ', piApprox
 		write(*,'(a,i)') 'Np = ', Np
+		write(*,'(a,i)') 'N  = ', N
 
 	endif
 
