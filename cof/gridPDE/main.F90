@@ -27,6 +27,7 @@ module gridOps
     contains
 
     subroutine initGrid()
+        integer :: n
         integer :: gridID(2), gridShape(2)
 
         allocate( Q(isd:ied,jsd:jed)[Px,*] )
@@ -45,7 +46,7 @@ module gridOps
     end subroutine initGrid
 
     subroutine destroyGrid()
-        deallocate(Q,xi,yi)
+        deallocate(Q,xc,yc)
     end subroutine destroyGrid
 end module gridOps
 
@@ -67,9 +68,6 @@ program Main
         write(*,*) 'Number of cores = ', NumP
     endif
     call initGrid()
-    
-
-    
     
     call destroyGrid()
 
