@@ -31,6 +31,7 @@ module gridOps
         allocate(xi(is:ie)[Px,*])
         allocate(yi(js:je)[Px,*])
         !Implicit sync b/c allocate
+        
     end subroutine initGrid
 
     subroutine destroyGrid()
@@ -44,7 +45,7 @@ end module gridOps
 program Main
     use params
     use gridOps
-    
+
     implicit none
 
     integer :: myID, myIDx, myIDy, NumP
@@ -55,9 +56,9 @@ program Main
         write(*,*) 'Dimensions per core: ', Nxp, Nyp
         write(*,*) 'Number of cores = ', NumP
     endif
-
+    call initGrid()
     gridShape = this_image(Q)
 
     write(*,*) 'My rank is ', gridShape(1), gridShape(2)
-    call initGrid()
+    
 end program Main
