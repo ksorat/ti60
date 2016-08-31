@@ -91,29 +91,30 @@ module gridOps
     subroutine Halo()
 
         sync all !Assuming need to sync at beginning
-        !West boundary
-        if (myIDx == 1) then
-            Q(isd:is-1,:) = qWest
-        else
-            Q(isd:is-1,:) = Q(ie-Ng+1:ie,:)[myIDx-1,myIDy]
+        !East/West
+        if ( (myIDx > 1) .and. (myIDx < NumX) ) then
+            !Interior, talk to neighbors
+            Q(isd :is-1 , js:je) = Q(ie-Ng+1:ie      , js:je)[myIDx-1,myIDy]
+            Q(ie+1:ied  , js:je) = Q(is     :is+Ng-1 , js:je)[myIDx+1,myIDy]
+        else if (myIDx == 1) then 
+            !West boundary
+            Q(isd:is-1,js:je) = qWest
+        else 
+            !East boundary
+            Q(ie+1:ied,js:je) = qEast
         endif
-        !East boundary
-        if (myIDx == NumX) then
-            Q(ie+1:ied,:) = qEast
+
+        !North/South
+        if ( (myIDy > 1) .and. (myIDy < NumY) ) then
+            !Interior, talk to neighbors
+            Q(is:ie,jsd : js-1) = Q(is:ie , je-Ng+1:je)     [myIDx,myIDy-1]
+            Q(is:ie,je+1: jed)  = Q(is:ie , js     :js+Ng-1)[myIDx,myIDy+1]
+        else if (myIDy == 1) then
+            !South boundary
+            Q(is:ie,jsd:js-1) = qSouth
         else
-            Q(ie+1:ied,:) = Q(is:is+Ng-1,:)[myIDx+1,myIDy]
-        endif
-        !South boundary
-        if (myIDy == 1) then
-            Q(:,jsd:js-1) = qSouth
-        else
-            Q(:,jsd:js-1) = Q(:,je-Ng+1:je)[myIDx,myIDy-1]
-        endif
-        !North boundary
-        if (myIDy == NumY) then
-            Q(:,je+1:jed) = qNorth
-        else
-            Q(:,je+1:jed) = Q(:,js:js+Ng-1)[myIDx,myIDy+1]
+            !North boundary
+            Q(is:ie,je+1:jed) = qNorth
         endif
 
         !Final sync
