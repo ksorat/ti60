@@ -4,10 +4,12 @@ module params
     implicit none
     integer, parameter :: dp = kind(1.0D0)
     integer, parameter :: cp = dp  !cp=current precision,"cp" or "dp"
-    integer, parameter :: Nxp = 50, Nyp = 30 !Number of cells per core in each dimension
+    integer, parameter :: Nxp = 5, Nyp = 4 !Number of cells per core in each dimension
     integer, parameter :: Px = 3 !3 Procs in x dimension
     integer, parameter :: Ng = 1 !Number of ghost cells
     real(cp), parameter :: xMin=-1.0, xMax=1.0, yMin=-1.0,yMax=1.0 !Grid domain
+
+    real(cp), parameter :: qNorth = 0.0, qSouth = 0.0, qWest = 0.0, qSouth = 0.0
 
     integer :: isd = 1-Ng, ied = Nxp+Ng
     integer :: jsd = 1-Ng, jed = Nyp+Ng
@@ -29,7 +31,7 @@ module gridOps
     contains
 
     subroutine initGrid()
-        integer :: n
+        integer :: n, gID
         integer :: gridID(2), gridShape(2)
 
         allocate( Q(isd:ied,jsd:jed)[Px,*] )
@@ -38,6 +40,7 @@ module gridOps
         !Implicit sync b/c allocate
 
         !Construct cell-centers for grid
+        gID = this_image()
         gridID = this_image(Q)
         do n=1,2
             gridShape(n) = ucobound(Q,n) - lcobound(Q,n) + 1
@@ -62,23 +65,60 @@ module gridOps
         yMaxP = yMinP + dyP
 
         !This procs chunk
-        xc = xMinP + dx*(/isd-1:ied-1/)
-        yc = yMinP + dy*(/jsd-1:jed-1/)
+        xc = xMinP + 0.5*dx + dx*(/isd-1:ied-1/)
+        yc = yMinP + 0.5*dy + dy*(/jsd-1:jed-1/)
 
-        critical
+        critical !Coarray throttle
             write(*,'(a,I4,a,I4,a)') 'My rank is (', myIDx, ',', myIDy, ')'
             write(*,'(a,f7.3)') '    xMin = ', xMinP
             write(*,'(a,f7.3)') '    xMax = ', xMaxP
             write(*,'(a,f7.3)') '    yMin = ', yMinP
             write(*,'(a,f7.3)') '    yMax = ', yMaxP
-            write(*,*) 'xc = ', xc
-            write(*,*) 'yc = ', yc
+            !write(*,*) 'xc = ', xc
+            !write(*,*) 'yc = ', yc
         end critical 
+
+        Q(:,:) = 1.0*gID
+
+        sync all
     end subroutine initGrid
 
     subroutine destroyGrid()
         deallocate(Q,xc,yc)
     end subroutine destroyGrid
+
+    !Does halo swap
+    subroutine Halo()
+
+        sync all !Assuming need to sync at beginning
+        !West boundary
+        if (myIDx == 1) then
+            Q(isd:is-1,:) = qWest
+        else
+            Q(isd:is-1,:) = Q(ie-Ng+1:ie,:)[myIDx-1,myIDy]
+        endif
+        !East boundary
+        if (myIDx == NumX) then
+            Q(ie+1:ied,:) = qEast
+        else
+            Q(ie+1:ied,:) = Q(is:is+Ng-1,:)[myIDx+1,myIDy]
+        endif
+        !South boundary
+        if (myIDy == 1) then
+            Q(:,jsd:js-1) = qSouth
+        else
+            Q(:,jsd:js-1) = Q(:,je-Ng+1:je)[myIDx,myIDy-1]
+        endif
+        !North boundary
+        if (myIDy == 1) then
+            Q(:,je+1:jed) = qNorth
+        else
+            Q(:,je+1:jed) = Q(:,js:js+Ng-1)[myIDx,myIDy+1]
+        endif
+
+        !Final sync
+        sync all
+    end subroutine Halo
 end module gridOps
 
 !module pdeOps
