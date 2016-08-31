@@ -62,7 +62,7 @@ module gridOps
         yMaxP = yMinP + dyP
 
         critical
-            write(*,'(a,3I,a,3I,a)') 'My rank is (', myIDx, ',', myIDy, ')'
+            write(*,'(a,I4,a,I4,a)') 'My rank is (', myIDx, ',', myIDy, ')'
             write(*,'(a,f7.3)') '    xMin = ', xMinP
             write(*,'(a,f7.3)') '    xMax = ', xMaxP
             write(*,'(a,f7.3)') '    yMin = ', yMinP
