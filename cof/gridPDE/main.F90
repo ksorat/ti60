@@ -1,6 +1,7 @@
 !Main param module
-
+!ifort -coarray=shared -coarray-num-images=12 main.F90
 module params
+    implicit none
     integer, parameter :: dp = kind(1.0D0)
     integer, parameter :: cp = dp  !cp=current precision,"cp" or "dp"
     integer, parameter :: Nxp = 50, Nyp = 30 !Number of cells per core in each dimension
@@ -17,9 +18,13 @@ end module params
 
 module gridOps
     use params
+    implicit none
+
     real(cp) :: dx,dy !Grid spacing, assumed uniform
     real(cp), allocatable :: Q(:,:)[:,:]
     real(cp), allocatable :: xi(:)[:,:], yi(:)[:,:] !Local grid info
+
+    contains
 
     subroutine initGrid()
         allocate( Q(isd:ied,jsd:jed)[Px,*] )
@@ -38,7 +43,8 @@ end module gridOps
 
 program Main
     use params
-
+    implicit none
+    
     integer :: myID, myIDx, myIDy, NumP
     integer :: gridShape(2)
     myID = this_image() !1D rank
