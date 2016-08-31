@@ -22,15 +22,25 @@ module gridOps
 
     real(cp) :: dx,dy !Grid spacing, assumed uniform
     real(cp), allocatable :: Q(:,:)[:,:]
-    real(cp), allocatable :: xi(:)[:,:], yi(:)[:,:] !Local grid info
-
+    real(cp), allocatable :: xc(:)[:,:], yc(:)[:,:] !Local grid info
+    integer :: myIDx, myIDy, NumX, NumY
     contains
 
     subroutine initGrid()
+        integer :: gridID(2), gridShape(2)
+
         allocate( Q(isd:ied,jsd:jed)[Px,*] )
-        allocate(xi(is:ie)[Px,*])
-        allocate(yi(js:je)[Px,*])
+        allocate(xc(isd:ied)[Px,*])
+        allocate(yc(jsd:jed)[Px,*])
         !Implicit sync b/c allocate
+
+        !Construct cell-centers for grid
+        gridID = this_image(Q)
+        do n=1,2
+            gridShape(n) = ucobound(Q,n) - lcobound(Q,n) + 1
+        end do
+        write(*,*) 'My rank is ', gridID(1), gridID(2)
+        write(*,*) '   of ', gridShape(1), gridShape(2)
         
     end subroutine initGrid
 
@@ -48,7 +58,7 @@ program Main
 
     implicit none
 
-    integer :: myID, myIDx, myIDy, NumP
+    integer :: myID, NumP
     integer :: gridShape(2)
     myID = this_image() !1D rank
     NumP = num_images()
@@ -57,8 +67,10 @@ program Main
         write(*,*) 'Number of cores = ', NumP
     endif
     call initGrid()
-    gridShape = this_image(Q)
-
-    write(*,*) 'My rank is ', gridShape(1), gridShape(2)
     
+
+    
+    
+    call destroyGrid()
+
 end program Main
