@@ -61,13 +61,18 @@ module gridOps
         yMinP = yMin+dyP*(myIDy-1)
         yMaxP = yMinP + dyP
 
+        !This procs chunk
+        xc = xMinP + dx*(/isd-1:ied-1)
+        yc = yMinP + dy*(/jsd-1:jed-1)
+
         critical
             write(*,'(a,I4,a,I4,a)') 'My rank is (', myIDx, ',', myIDy, ')'
             write(*,'(a,f7.3)') '    xMin = ', xMinP
             write(*,'(a,f7.3)') '    xMax = ', xMaxP
             write(*,'(a,f7.3)') '    yMin = ', yMinP
             write(*,'(a,f7.3)') '    yMax = ', yMaxP
-       
+            write(*,*) 'xc = ', xc
+            write(*,*) 'yc = ', yc
         end critical 
     end subroutine initGrid
 
