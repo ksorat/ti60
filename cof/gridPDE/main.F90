@@ -20,7 +20,7 @@ module gridOps
     use params
     implicit none
 
-    real(cp) :: dx,dy,Pdx,Pdy !Grid spacing, assumed uniform
+    real(cp) :: dx,dy,dxP,dyP !Grid spacing, assumed uniform
     real(cp) :: xMinP, xMaxP, yMinP, yMaxP
 
     real(cp), allocatable :: Q(:,:)[:,:]
@@ -64,7 +64,7 @@ module gridOps
         yMaxP = yMinP + dyP
 
         critical
-            write(*,'(a,I,a,I)') 'My rank is (' myIDx, ',', myIDy, ')'
+            write(*,'(a,I,a,I)') 'My rank is (', myIDx, ',', myIDy, ')'
         end critical 
     end subroutine initGrid
 
