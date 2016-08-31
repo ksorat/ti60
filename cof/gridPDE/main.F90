@@ -62,8 +62,8 @@ module gridOps
         yMaxP = yMinP + dyP
 
         !This procs chunk
-        xc = xMinP + dx*(/isd-1:ied-1)
-        yc = yMinP + dy*(/jsd-1:jed-1)
+        xc = xMinP + dx*(/isd-1:ied-1/)
+        yc = yMinP + dy*(/jsd-1:jed-1/)
 
         critical
             write(*,'(a,I4,a,I4,a)') 'My rank is (', myIDx, ',', myIDy, ')'
