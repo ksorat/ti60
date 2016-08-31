@@ -144,7 +144,7 @@ program Main
         write(*,*) 'I am rank ', myID
         do j=jsd,jed
             do i=isd,ied
-                write(*,*) 'i,j,Q[i,j] = ', i, ',', j, ',', Q[i,j]
+                write(*,*) 'i,j,Q(i,j) = ', i, ',', j, ',', Q(i,j)
             end do
         end do
     end critical
