@@ -43,8 +43,10 @@ end module gridOps
 
 program Main
     use params
-    implicit none
+    use gridOps
     
+    implicit none
+
     integer :: myID, myIDx, myIDy, NumP
     integer :: gridShape(2)
     myID = this_image() !1D rank
