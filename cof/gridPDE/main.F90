@@ -47,8 +47,6 @@ module gridOps
         myIDy = gridID(2)
         NumX  = gridShape(1)
         NumY  = gridShape(2)
-        write(*,*) 'My rank is ', gridID(1), gridID(2)
-        write(*,*) '   of ', gridShape(1), gridShape(2)
         
         !Grid spacing
         dx = (xMax-xMin)/(NumX*Nxp)
@@ -64,7 +62,12 @@ module gridOps
         yMaxP = yMinP + dyP
 
         critical
-            write(*,'(a,I,a,I)') 'My rank is (', myIDx, ',', myIDy, ')'
+            write(*,'(a,3I,a,3I,a)') 'My rank is (', myIDx, ',', myIDy, ')'
+            write(*,'(a,f7.3)') '    xMin = ', xMinP
+            write(*,'(a,f7.3)') '    xMax = ', xMaxP
+            write(*,'(a,f7.3)') '    yMin = ', yMinP
+            write(*,'(a,f7.3)') '    yMax = ', yMaxP
+       
         end critical 
     end subroutine initGrid
 
