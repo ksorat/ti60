@@ -9,7 +9,7 @@ module params
     integer, parameter :: Ng = 1 !Number of ghost cells
     real(cp), parameter :: xMin=-1.0, xMax=1.0, yMin=-1.0,yMax=1.0 !Grid domain
 
-    real(cp), parameter :: qNorth = 0.0, qSouth = 0.0, qWest = 0.0, qSouth = 0.0
+    real(cp), parameter :: qNorth = 0.0, qSouth = 0.0, qWest = 0.0, qEast = 0.0
 
     integer :: isd = 1-Ng, ied = Nxp+Ng
     integer :: jsd = 1-Ng, jed = Nyp+Ng
