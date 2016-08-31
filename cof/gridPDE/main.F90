@@ -138,8 +138,9 @@ program Main
         write(*,*) 'Dimensions per core: ', Nxp, Nyp
         write(*,*) 'Number of cores = ', NumP
     endif
+
     call initGrid()
-    
+    call Halo()
     critical
         write(*,*) 'I am rank ', myID
         do j=jsd,jed
