@@ -110,7 +110,7 @@ module gridOps
             Q(:,jsd:js-1) = Q(:,je-Ng+1:je)[myIDx,myIDy-1]
         endif
         !North boundary
-        if (myIDy == 1) then
+        if (myIDy == NumY) then
             Q(:,je+1:jed) = qNorth
         else
             Q(:,je+1:jed) = Q(:,js:js+Ng-1)[myIDx,myIDy+1]
