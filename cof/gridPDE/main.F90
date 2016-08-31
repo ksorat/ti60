@@ -20,7 +20,9 @@ module gridOps
     use params
     implicit none
 
-    real(cp) :: dx,dy !Grid spacing, assumed uniform
+    real(cp) :: dx,dy,Pdx,Pdy !Grid spacing, assumed uniform
+    real(cp) :: xMinP, xMaxP, yMinP, yMaxP
+
     real(cp), allocatable :: Q(:,:)[:,:]
     real(cp), allocatable :: xc(:)[:,:], yc(:)[:,:] !Local grid info
     integer :: myIDx, myIDy, NumX, NumY
@@ -40,9 +42,30 @@ module gridOps
         do n=1,2
             gridShape(n) = ucobound(Q,n) - lcobound(Q,n) + 1
         end do
+
+        myIDx = gridID(1)
+        myIDy = gridID(2)
+        NumX  = gridShape(1)
+        NumY  = gridShape(2)
         write(*,*) 'My rank is ', gridID(1), gridID(2)
         write(*,*) '   of ', gridShape(1), gridShape(2)
         
+        !Grid spacing
+        dx = (xMax-xMin)/(NumX*Nxp)
+        dy = (yMax-yMin)/(NumY*Nyp)
+
+        !Processor spacing
+        dxP = dx*Nxp 
+        dyP = dy*Nyp
+
+        xMinP = xMin+dxP*(myIDx-1)
+        xMaxP = xMinP + dxP
+        yMinP = yMin+dyP*(myIDy-1)
+        yMaxP = yMinP + dyP
+
+        critical
+            write(*,'(a,I,a,I)') 'My rank is (' myIDx, ',', myIDy, ')'
+        end critical 
     end subroutine initGrid
 
     subroutine destroyGrid()
