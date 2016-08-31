@@ -130,7 +130,7 @@ program Main
 
     implicit none
 
-    integer :: myID, NumP
+    integer :: myID, NumP, i,j
     integer :: gridShape(2)
     myID = this_image() !1D rank
     NumP = num_images()
@@ -140,6 +140,14 @@ program Main
     endif
     call initGrid()
     
+    critical
+        write(*,*) 'I am rank ', myID
+        do j=jsd,jed
+            do i=isd,ied
+                write(*,*) 'i,j,Q[i,j] = ', i, ',', j, ',', Q[i,j]
+            end do
+        end do
+    end critical
     call destroyGrid()
 
 end program Main
