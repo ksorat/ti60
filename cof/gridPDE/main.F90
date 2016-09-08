@@ -1,10 +1,10 @@
 !Main param module
-!ifort -coarray=shared -coarray-num-images=12 main.F90
+!ifort -coarray=shared -coarray-num-images=16 main.F90
 module params
     implicit none
     integer, parameter :: dp = kind(1.0D0)
     integer, parameter :: cp = dp  !cp=current precision,"cp" or "dp"
-    integer, parameter :: NxTot = 1024, NyTot = 1024
+    integer, parameter :: NxTot = 1024, NyTot = 2056
     
     integer, parameter :: Ng = 1 !Number of ghost cells
     
@@ -190,7 +190,7 @@ program Main
 
     !Initialize grid info
     if (myID == 1) then
-        call get_command_argument(2,inpArg)
+        call get_command_argument(1,inpArg)
         write(*,*) inpArg
         read(inpArg,*) Px
         do i=1,NumP
