@@ -146,8 +146,8 @@ module gridOps
 
         wx = k0*dt/(dy*dy)
         wy = k0*dt/(dx*dx)
-        wxx = -2 + hy*hy/(2*k0*dt)
-        wyy = -2 + hx*hx/(2*k0*dt)
+        wxx = -2 + dy*dy/(2*k0*dt)
+        wyy = -2 + dx*dx/(2*k0*dt)
 
 
         do j=js,je
@@ -181,7 +181,7 @@ program Main
 
     integer :: myID, NumP, i,j, ts
     integer :: gridShape(2)
-    char(len=500) :: inpArg
+    character(len=500) :: inpArg
     real(cp), codimension[*] :: locRes
     real(cp) :: totRes !Total residual
     logical :: doIter = .true.
@@ -211,16 +211,17 @@ program Main
     !Grid initialized, halos initialized, sync complete
     do while(doIter)
 
-        locRes[myID] = call Relax()
+        locRes[myID] = Relax()
         if (myID == 1) then
             totRes = 0.0
-            do i=1:NumP
+            do i=1,NumP
                 totRes = totRes + locRes[i]
             enddo
-            locRes[:] = totRes
+            !locRes[:] = totRes
             write(*,*) 'TS = ',ts
             write(*,*) '   Residual = ', totRes
         endif
+        call co_broadcast(totRes,source_image=1)
         sync all
         if (locRes<=resTol) then
             doIter = .false.
@@ -229,7 +230,7 @@ program Main
         endif
         ts = ts+1
     enddo
-    
+
     call destroyGrid()
 
 end program Main
