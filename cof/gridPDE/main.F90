@@ -13,7 +13,7 @@ module params
     real(cp), parameter :: resTol = 1.0e-1
     real(cp) :: dt, k0 = 1.0
 
-    integer :: Px  !Procs in x dimension
+    integer :: Px[*]  !Procs in x dimension
     integer :: Nxp, Nyp !Number of cells per core in each dimension
 
 end module params
@@ -189,9 +189,15 @@ program Main
     NumP = num_images()
 
     !Initialize grid info
-    call get_command_argument(2,inpArg)
-    write(*,*) inpArg
-    read(inpArg,*) Px
+    if (myID == 1) then
+        call get_command_argument(2,inpArg)
+        write(*,*) inpArg
+        read(inpArg,*) Px
+        do i=1,NumP
+            Px[i] = Px
+        enddo
+    endif
+    sync all
     Nxp = NxTot/Px
     Nyp = NyTot/(NumP/Px)
 
