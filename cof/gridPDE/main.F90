@@ -206,9 +206,9 @@ program Main
     Nyp = NyTot/(NumP/Px)
 
     xMin = 0.0
-    xMax = dble(NxTot)
+    xMax = 1.0!dble(NxTot)
     yMin = 0.0
-    yMax = dble(NyTot)
+    yMax = 1.0!dble(NyTot)
 
     call initGrid()
     if (myID == 1) then
