@@ -11,7 +11,7 @@ module params
     real(cp), parameter :: qEdge = -10, qInterior = 10.0
     real(cp), parameter :: qNorth = qEdge, qSouth = qEdge, qWest = qEdge, qEast = qEdge
     real(cp), parameter :: resTol = 1.0e-1
-    real(cp) :: dt, k0 = 1.0
+    real(cp) :: k0 = 1.0
 
     integer :: Px[*]  !Procs in x dimension
     integer :: Nxp, Nyp !Number of cells per core in each dimension
@@ -26,7 +26,7 @@ module gridOps
 
 
     real(cp) :: xMin,xMax,yMin,yMax !Grid domain
-    real(cp) :: dx,dy,dxP,dyP !Grid spacing, assumed uniform
+    real(cp) :: dt, dx,dy,dxP,dyP !Grid spacing, assumed uniform
     real(cp) :: xMinP, xMaxP, yMinP, yMaxP
 
     real(cp), allocatable :: Q(:,:)[:,:]
@@ -67,6 +67,9 @@ module gridOps
         !Grid spacing
         dx = (xMax-xMin)/(NumX*Nxp)
         dy = (yMax-yMin)/(NumY*Nyp)
+
+        !Timestep
+        dt = 0.25*( min(dx,dy)**2.0/k0 )
 
         !Processor spacing
         dxP = dx*Nxp 
@@ -198,6 +201,7 @@ program Main
         enddo
     endif
     sync all
+
     Nxp = NxTot/Px
     Nyp = NyTot/(NumP/Px)
 
@@ -206,15 +210,18 @@ program Main
     yMin = 0.0
     yMax = dble(NyTot)
 
+    call initGrid()
     if (myID == 1) then
         write(*,*) 'Physical Grid dimension: ', NxTot,NyTot
         write(*,*) 'Processor Grid dimension: ', Px, NumP/Px
         write(*,*) 'Dimensions per core: ', Nxp, Nyp
         write(*,*) 'Number of cores = ', NumP
+        write(*,*) 'Timestep = ', dt
     endif
+
     totRes = 1.0e+8
     ts = 0
-    call initGrid()
+    
     !Grid initialized, halos initialized, sync complete
     do while(doIter)
 
