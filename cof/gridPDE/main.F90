@@ -217,11 +217,14 @@ program Main
             do i=1,NumP
                 totRes = totRes + locRes[i]
             enddo
+            do i=1,NumP
+                locRes[i] = totRes
+            enddo
             !locRes[:] = totRes
             write(*,*) 'TS = ',ts
             write(*,*) '   Residual = ', totRes
         endif
-        call co_broadcast(totRes,source_image=1)
+        !call co_broadcast(totRes,source_image=1)
         sync all
         if (locRes<=resTol) then
             doIter = .false.
