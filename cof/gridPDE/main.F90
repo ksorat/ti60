@@ -190,6 +190,7 @@ program Main
 
     !Initialize grid info
     call get_command_argument(2,inpArg)
+    write(*,*) inpArg
     read(inpArg,*) Px
     Nxp = NxTot/Px
     Nyp = NyTot/(NumP/Px)
