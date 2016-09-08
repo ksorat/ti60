@@ -4,24 +4,28 @@ module params
     implicit none
     integer, parameter :: dp = kind(1.0D0)
     integer, parameter :: cp = dp  !cp=current precision,"cp" or "dp"
-    integer, parameter :: Nxp = 5, Nyp = 4 !Number of cells per core in each dimension
-    integer, parameter :: Px = 3 !3 Procs in x dimension
+    integer, parameter :: NxTot = 1024, NyTot = 1024
+    
     integer, parameter :: Ng = 1 !Number of ghost cells
-    real(cp), parameter :: xMin=-1.0, xMax=1.0, yMin=-1.0,yMax=1.0 !Grid domain
+    
+    real(cp), parameter :: qEdge = -10, qInterior = 10.0
+    real(cp), parameter :: qNorth = qEdge, qSouth = qEdge, qWest = qEdge, qEast = qEdge
+    real(cp), parameter :: resTol = 1.0e-1
+    real(cp) :: dt, k0 = 1.0
 
-    real(cp), parameter :: qNorth = 0.0, qSouth = 0.0, qWest = 0.0, qEast = 0.0
-
-    integer :: isd = 1-Ng, ied = Nxp+Ng
-    integer :: jsd = 1-Ng, jed = Nyp+Ng
-    integer :: is = 1, ie = Nxp
-    integer :: js = 1, je = Nyp
+    integer :: Px  !Procs in x dimension
+    integer :: Nxp, Nyp !Number of cells per core in each dimension
 
 end module params
 
 module gridOps
     use params
     implicit none
+    integer :: isd, ied, is, ie
+    integer :: jsd,jed,js,je
 
+
+    real(cp) :: xMin,xMax,yMin,yMax !Grid domain
     real(cp) :: dx,dy,dxP,dyP !Grid spacing, assumed uniform
     real(cp) :: xMinP, xMaxP, yMinP, yMaxP
 
@@ -33,6 +37,15 @@ module gridOps
     subroutine initGrid()
         integer :: n, gID
         integer :: gridID(2), gridShape(2)
+
+        isd = 1-Ng
+        ied = Nxp+Ng
+        jsd = 1-Ng
+        jed = Nyp+Ng
+        is = 1
+        ie = Nxp
+        js = 1
+        je = Nyp
 
         allocate( Q(isd:ied,jsd:jed)[Px,*] )
         allocate(xc(isd:ied)[Px,*])
@@ -78,9 +91,11 @@ module gridOps
             !write(*,*) 'yc = ', yc
         end critical 
 
-        Q(:,:) = 1.0*gID
+        Q(:,:) = qInterior
 
         sync all
+        call Halo()
+
     end subroutine initGrid
 
     subroutine destroyGrid()
@@ -90,7 +105,7 @@ module gridOps
     !Does halo swap
     subroutine Halo()
 
-        sync all !Assuming need to sync at beginning
+        sync all !Need to sync at beginning
         !East/West
         if ( (myIDx > 1) .and. (myIDx < NumX) ) then
             !Interior, talk to neighbors
@@ -120,6 +135,39 @@ module gridOps
         !Final sync
         sync all
     end subroutine Halo
+
+    !Evolve local grid using relaxation
+    !Assume halos up to date
+    function Relax()
+        integer :: i,j
+        real(cp) :: Relax
+        real(cp) :: qSwap(is:ie,js:je)
+        real(cp) :: wx,wy,wxx,wyy,rk
+
+        wx = k0*dt/(dy*dy)
+        wy = k0*dt/(dx*dx)
+        wxx = -2 + hy*hy/(2*k0*dt)
+        wyy = -2 + hx*hx/(2*k0*dt)
+
+
+        do j=js,je
+            do i=is,ie
+                qSwap(i,j) = wx* ( Q(i-1,j) + Q(i+1,j) + wxx*Q(i,j) ) &
+                           + wy* ( Q(i,j-1) + Q(i,j+1) + wyy*Q(i,j) ) 
+            end do
+        end do
+
+        Relax = 0.0
+        do j=js,je
+            do i=is,ie
+                rk = Q(i,j) - qSwap(i,j)
+                Relax = Relax + rk*rk
+                Q(i,j) = qSwap(i,j)
+            end do
+        end do
+
+    end function Relax
+    
 end module gridOps
 
 !module pdeOps
@@ -131,25 +179,57 @@ program Main
 
     implicit none
 
-    integer :: myID, NumP, i,j
+    integer :: myID, NumP, i,j, ts
     integer :: gridShape(2)
+    char(len=500) :: inpArg
+    real(cp), codimension[*] :: locRes
+    real(cp) :: totRes !Total residual
+    logical :: doIter = .true.
     myID = this_image() !1D rank
     NumP = num_images()
+
+    !Initialize grid info
+    call get_command_argument(2,inpArg)
+    read(inpArg,*) Px
+    Nxp = NxTot/Px
+    Nyp = NyTot/(NumP/Px)
+
+    xMin = 0.0
+    xMax = dble(NxTot)
+    yMin = 0.0
+    yMax = dble(NyTot)
+
     if (myID == 1) then
+        write(*,*) 'Physical Grid dimension: ', NxTot,NyTot
+        write(*,*) 'Processor Grid dimension: ', Px, NumP/Px
         write(*,*) 'Dimensions per core: ', Nxp, Nyp
         write(*,*) 'Number of cores = ', NumP
     endif
-
+    totRes = 1.0e+8
+    ts = 0
     call initGrid()
-    call Halo()
-    critical
-        write(*,*) 'I am rank ', myID
-        do j=jsd,jed
-            do i=isd,ied
-                write(*,*) 'i,j,Q(i,j) = ', i, ',', j, ',', Q(i,j)
-            end do
-        end do
-    end critical
+    !Grid initialized, halos initialized, sync complete
+    do while(doIter)
+
+        locRes[myID] = call Relax()
+        if (myID == 1) then
+            totRes = 0.0
+            do i=1:NumP
+                totRes = totRes + locRes[i]
+            enddo
+            locRes[:] = totRes
+            write(*,*) 'TS = ',ts
+            write(*,*) '   Residual = ', totRes
+        endif
+        sync all
+        if (locRes<=resTol) then
+            doIter = .false.
+        else
+            call Halo()
+        endif
+        ts = ts+1
+    enddo
+    
     call destroyGrid()
 
 end program Main
