@@ -83,10 +83,10 @@ module gridOps
 
         critical !Coarray throttle
             write(*,'(a,I4,a,I4,a)') 'My rank is (', myIDx, ',', myIDy, ')'
-            write(*,'(a,f7.3)') '    xMin = ', xMinP
-            write(*,'(a,f7.3)') '    xMax = ', xMaxP
-            write(*,'(a,f7.3)') '    yMin = ', yMinP
-            write(*,'(a,f7.3)') '    yMax = ', yMaxP
+            write(*,'(a,f9.3)') '    xMin = ', xMinP
+            write(*,'(a,f9.3)') '    xMax = ', xMaxP
+            write(*,'(a,f9.3)') '    yMin = ', yMinP
+            write(*,'(a,f9.3)') '    yMax = ', yMaxP
             !write(*,*) 'xc = ', xc
             !write(*,*) 'yc = ', yc
         end critical 
