@@ -231,6 +231,7 @@ program Main
             do i=1,NumP
                 totRes = totRes + locRes[i]
             enddo
+            totRes = sqrt(totRes)
             do i=1,NumP
                 locRes[i] = totRes
             enddo
