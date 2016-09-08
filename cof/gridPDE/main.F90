@@ -94,7 +94,8 @@ module gridOps
             !write(*,*) 'yc = ', yc
         end critical 
 
-        Q(:,:) = qInterior
+        Q(:,:) = qEdge
+        Q(is:ie,js:je) = qInterior
 
         sync all
         call Halo()
